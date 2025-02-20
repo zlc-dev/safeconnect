@@ -21,14 +21,14 @@ pub struct RsaPair {
 
 impl RsaPair {
 
-    pub fn new(bit_size: usize) -> Self {
+    pub fn new(bit_size: usize) -> Result<Self, rsa::Error>  {
         let mut rng = rand::thread_rng();
-        let pri_key = RsaPrivateKey::new(&mut rng, bit_size).unwrap();
+        let pri_key = RsaPrivateKey::new(&mut rng, bit_size)?;
         let pub_key = RsaPublicKey::from(&pri_key);
-        Self {
+        Ok(Self {
             encrypter: RsaEncrypter::new(pub_key),
             decrypter: RsaDecryptor::new(pri_key)
-        }
+        })
     }
 
     pub fn split(&mut self) -> (&mut RsaEncrypter, &mut RsaDecryptor){
