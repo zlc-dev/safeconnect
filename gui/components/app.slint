@@ -1,4 +1,4 @@
-import { CheckBox, HorizontalBox, VerticalBox, GroupBox, TextEdit, Button } from "std-widgets.slint";
+import { CheckBox, HorizontalBox, VerticalBox, GroupBox, TextEdit, Button, ComboBox } from "std-widgets.slint";
 
 export component App inherits Window {
 
@@ -12,15 +12,27 @@ export component App inherits Window {
     in-out property <string> decrypted-secret <=> decrypted_secret.text;
     in-out property <string> message <=> message_te.text;
     in-out property <string> encrypted-message <=> encrypted_message.text;
+    in property <[string]> bit_size_list <=> bit_size_cb.model;
+    out property <int> current_bit_size_index <=> bit_size_cb.current-index;
 
     title: "RSA Encryption & Decryption";
 
     VerticalLayout {
-        Rectangle {
+        HorizontalBox {
             gen_key_button := Button {
-                width: 60%;
-                height: 100%;
+                min-width: 400px;
                 text: "Generate Your Key";
+            }
+            Text {
+                min-width: 80px;
+                vertical-alignment: center;
+                horizontal-alignment: right;
+                text: "Bit Size: ";
+            }
+            bit_size_cb := ComboBox {
+                min-width: 320px;
+                model: [];
+                current-index: 0;
             }
         }
 

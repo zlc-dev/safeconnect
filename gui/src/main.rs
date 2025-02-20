@@ -2,25 +2,37 @@
 
 use base64::prelude::BASE64_STANDARD;
 use encryption::{encrypt::{DecryptorBase64Ext, EncrypterBase64Ext, RsaDecryptor, RsaEncrypter, RsaPair}, rsa::{pkcs1::{DecodeRsaPublicKey, EncodeRsaPublicKey}, pkcs8::LineEnding, RsaPublicKey}};
-use slint::{PlatformError, ToSharedString};
+use slint::{PlatformError, SharedString, ToSharedString};
 
 slint::include_modules!();
 
 static mut DECRYPTOR: Option<RsaDecryptor> = None;
 static mut ENCRYPTER: Option<RsaEncrypter> = None;
 
-const KEY_BIT_SIZE: usize = 1024;
+const KEY_BIT_SIZE_LIST: [usize; 5] = [256, 512, 1024, 2048, 4096];
 
 fn main() -> Result<(), PlatformError> {
     
     let app = App::new().unwrap();
 
+    app.set_bit_size_list(
+        KEY_BIT_SIZE_LIST
+        .iter()
+        .map(|n| n.to_shared_string())
+        .collect::<Vec<SharedString>>()[..]
+        .into()
+    );
+
     let app_handle = app.as_weak();
     app.on_gen_key_button_clicked(move || {
-        let (enc, dec) = RsaPair::new(KEY_BIT_SIZE).split_owned();
+        app_handle.unwrap().set_self_pub_key("Generating... ".into());
+        let idx = app_handle.unwrap().get_current_bit_size_index() as usize;
+        // todo: make it async
+        let (enc, dec) = RsaPair::new(KEY_BIT_SIZE_LIST[idx]).split_owned();
         unsafe {
             DECRYPTOR = Some(dec);
         }
+        
         match enc.get_pub_key().to_pkcs1_pem(LineEnding::CRLF) {
             Ok(pub_key) => app_handle.unwrap().set_self_pub_key(format!("{pub_key}").into()),
             Err(err) => app_handle.unwrap().set_self_pub_key(err.to_shared_string()),
