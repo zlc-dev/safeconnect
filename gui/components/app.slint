@@ -1,0 +1,103 @@
+import { CheckBox, HorizontalBox, VerticalBox, GroupBox, TextEdit, Button } from "std-widgets.slint";
+
+export component App inherits Window {
+
+    callback gen-key-button-clicked <=> gen_key_button.clicked;
+    callback encrypt-button-clicked <=> encrypt_button.clicked;
+    callback decrypt-button-clicked <=> decrypt_button.clicked;
+    callback recv-pub-key-changed;
+    in-out property <string> self-pub-key <=> self_pub_key.text;
+    in-out property <string> recv-pub-key <=> recv_pub_key.text;
+    in-out property <string> secret <=> secret_te.text;
+    in-out property <string> decrypted-secret <=> decrypted_secret.text;
+    in-out property <string> message <=> message_te.text;
+    in-out property <string> encrypted-message <=> encrypted_message.text;
+
+    title: "RSA Encryption & Decryption";
+
+    VerticalLayout {
+        Rectangle {
+            gen_key_button := Button {
+                width: 60%;
+                height: 100%;
+                text: "Generate Your Key";
+            }
+        }
+
+        HorizontalBox {
+            GroupBox {
+                title: @tr("Your Public Key");
+                self_pub_key := TextEdit {
+                    min-width: 400px;
+                    min-height: 100px;
+                    placeholder-text: @tr("Generate Your Public Key");
+                    wrap: char-wrap;
+                    read-only: true;
+                }
+            }
+
+            GroupBox {
+                title: @tr("Recipient's Public Key");
+                recv_pub_key := TextEdit {
+                    min-width: 400px;
+                    min-height: 100px;
+                    placeholder-text: @tr("Input Recipient's Public Key");
+                    wrap: char-wrap;
+                    changed text => {recv-pub-key-changed()}
+                }
+            }
+        }
+
+        HorizontalBox {
+            GroupBox {
+                title: @tr("Receive");
+                VerticalLayout {
+                    spacing: 10px;
+                    secret_te := TextEdit {
+                        min-width: 400px;
+                        min-height: 150px;
+                        placeholder-text: @tr("Secret");
+                        wrap: char-wrap;
+                    }
+                    decrypted_secret := TextEdit {
+                        min-width: 400px;
+                        min-height: 150px;
+                        placeholder-text: @tr("Decrypted Secret");
+                        wrap: char-wrap;
+                        read-only: true;
+                    }
+                }
+            }
+
+            GroupBox {
+                title: @tr("Send");
+                VerticalLayout {
+                    spacing: 10px;
+                    message_te := TextEdit {
+                        min-width: 400px;
+                        min-height: 150px;
+                        placeholder-text: @tr("Message");
+                        wrap: char-wrap;
+                    }
+                    encrypted_message := TextEdit {
+                        min-width: 400px;
+                        min-height: 150px;
+                        placeholder-text: @tr("Encrypted Message");
+                        wrap: char-wrap;
+                        read-only: true;
+                    }
+                }
+            }
+        }
+        HorizontalBox {
+            decrypt_button := Button {
+                text: "Decrypt";
+            }
+            encrypt_button := Button {
+                text: "Encrypt";
+            }
+        }
+
+    }
+
+}
