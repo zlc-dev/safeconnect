@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 
 use super::{Decryptor, Encrypter};
@@ -52,9 +54,9 @@ impl RsaEncrypter {
 }
 
 impl Encrypter for RsaEncrypter {
-    fn encrypt(&mut self, in_data: &[u8]) -> Vec<u8> {
-        let out = self.key.encrypt(&mut rand::thread_rng(), Pkcs1v15Encrypt, &in_data).unwrap();
-        out
+    fn encrypt(&mut self, in_data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
+        self.key.encrypt(&mut rand::thread_rng(), Pkcs1v15Encrypt, &in_data)
+                .map_err(|e| -> Box<dyn Error> { Box::new(e) })
     }
 }
 
@@ -65,10 +67,10 @@ impl RsaDecryptor {
 }
 
 impl Decryptor for RsaDecryptor {
-    fn decrypt(&mut self, in_data: &[u8]) -> Option<Vec<u8>> {
+    fn decrypt(&mut self, in_data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
         match self.key.decrypt(Pkcs1v15Encrypt, in_data) {
-            Ok(ret) => Some(ret),
-            Err(_) => None,
+            Ok(ret) => Ok(ret),
+            Err(err) => Err(Box::new(err)),
         }
     }
 }

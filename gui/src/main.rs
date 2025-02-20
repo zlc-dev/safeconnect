@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use base64::prelude::BASE64_STANDARD;
 use encryption::{encrypt::{DecryptorBase64Ext, EncrypterBase64Ext, RsaDecryptor, RsaEncrypter, RsaPair}, rsa::{pkcs1::{DecodeRsaPublicKey, EncodeRsaPublicKey}, pkcs8::LineEnding, RsaPublicKey}};
 use slint::{PlatformError, ToSharedString};
@@ -30,14 +32,16 @@ fn main() -> Result<(), PlatformError> {
         let secret = app_handle.unwrap().get_secret();
         unsafe {
             if let Some(ref mut dec) = DECRYPTOR  {
-                if let Some(msg) = dec.decrypt_base64(secret.as_str(), BASE64_STANDARD) {
-                    if let Ok(msg_utf8) = std::str::from_utf8(&msg) {
-                        app_handle.unwrap().set_decrypted_secret(msg_utf8.into());
-                    } else {
-                        app_handle.unwrap().set_decrypted_secret("Unsupport encode, need utf8".into());
-                    }
-                } else {
-                    app_handle.unwrap().set_decrypted_secret("Decryption error.".into());
+                match dec.decrypt_base64(secret.as_str(), BASE64_STANDARD) {
+                    Ok(msg) => {
+                        if let Ok(msg_utf8) = std::str::from_utf8(&msg) {
+                            app_handle.unwrap().set_decrypted_secret(msg_utf8.into());
+                        } else {
+                            app_handle.unwrap().set_decrypted_secret("Unsupport encode, need utf8".into());
+                        }
+                    },
+                    Err(e) =>
+                        app_handle.unwrap().set_decrypted_secret(format!("Decryption error: {e}").into()),
                 }
             } else {
                 app_handle.unwrap().set_decrypted_secret("Generate your keys and send your public key to the recipient firstly.".into());
@@ -62,8 +66,10 @@ fn main() -> Result<(), PlatformError> {
         let message = app_handle.unwrap().get_message();
         unsafe {
             if let Some(ref mut encrypter) = ENCRYPTER {
-                let encryped_msg = encrypter.encrypt_base64(message.as_bytes(), BASE64_STANDARD);
-                app_handle.unwrap().set_encrypted_message(encryped_msg.into());
+                match encrypter.encrypt_base64(message.as_bytes(), BASE64_STANDARD) {
+                    Ok(encryped_msg) => app_handle.unwrap().set_encrypted_message(encryped_msg.into()),
+                    Err(e) => app_handle.unwrap().set_encrypted_message(e.to_shared_string()),
+                }
             } else {
                 app_handle.unwrap().set_encrypted_message("Wrong recipient's public key".into());
             }
