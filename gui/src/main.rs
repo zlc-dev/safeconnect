@@ -89,7 +89,7 @@ fn main() -> Result<(), PlatformError> {
         let recv_pub_key = RsaPublicKey::from_pkcs1_pem(recv_pub_key_pem.as_str());
         match recv_pub_key {
             Ok(pub_key) => *global_enc = Some(RsaEncrypter::new(pub_key)),
-            Err(_) => {},
+            Err(_) => *global_enc = None,
         }
     });
 
